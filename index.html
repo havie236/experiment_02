@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counting Task Experiment</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* UI and Screen Management */
+        .hidden { display: none !important; }
+        .active { display: block; }
+        
+        #screen-task {
+            position: relative;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .session-tracker {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 20px;
+            color: #888;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="screen-intro" class="screen active">
+        <h1 style="text-transform: uppercase;">Instructions</h1>
+        
+        <div style="text-align: left; max-width: 750px; margin: 0 auto; font-size: 16px;">
+            <p>Thank you for participating in this experiment.</p>
+            <p>In this task, you will be asked to count specific items. You may be asked to:</p>
+            
+           <ul style="margin-bottom: 20px;">
+                <li>Count the number of ones (<strong>1</strong>) in a table containing 1s and 0s</li>
+                <li>Count the number of letters <strong>“m”</strong> in a table containing m and w</li>
+                <li>Count the number of UP-pointing triangles <strong>(▲)</strong> in a table containing UP (▲) and DOWN (▼) triangles</li>
+            </ul>
+
+            <div style="display: flex; justify-content: center; align-items: stretch; gap: 15px; margin: 20px 0;">
+                <div style="flex: 1; display: flex; justify-content: center;">
+                    <img src="hinh-1.png" alt="Zeros" style="width: 100%; max-width: 220px; height: 260px; object-fit: contain; border: 1px solid #eaeaea; border-radius: 4px; padding: 5px; background: #fff;">
+                </div>
+                <div style="flex: 1; display: flex; justify-content: center;">
+                    <img src="hinh-2.png" alt="Letters" style="width: 100%; max-width: 220px; height: 260px; object-fit: contain; border: 1px solid #eaeaea; border-radius: 4px; padding: 5px; background: #fff;">
+                </div>
+                <div style="flex: 1; display: flex; justify-content: center;">
+                    <img src="hinh-3.png" alt="Shapes" style="width: 100%; max-width: 220px; height: 260px; object-fit: contain; border: 1px solid #eaeaea; border-radius: 4px; padding: 5px; background: #fff;">
+                </div>
+            </div>
+
+            <p><strong>You may stop a session at any time and proceed to the next session. You are free to use other tabs for non-task activities (e.g., browsing, social media). However, you must complete the task independently. The use of AI tools (e.g., ChatGPT), automated counting tools, or any external help to assist with counting or solving the task is strictly prohibited.</strong></p>
+            <p>You will receive <strong> 620 VND</strong> for each correct count.</p>
+
+            <div style="margin: 40px auto; padding: 25px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; text-align: center; max-width: 400px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 15px; font-size: 16px; color: #495057;">Enter your Experiment Code:</label>
+                
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
+                    <input type="text" id="user-code-input" placeholder="e.g. 1" style="padding: 10px; width: 100px; text-align: center; font-size: 18px; border: 2px solid #ced4da; border-radius: 4px; margin: 0;">
+                    <button id="start-btn" onclick="startExperiment()" style="background-color: #28a745; color: white; border: none; padding: 12px 30px; font-size: 18px; border-radius: 4px; cursor: pointer; font-weight: bold; margin: 0;">Next</button>
+                </div>
+            </div>
+        </div>
+    </div> 
+    
+    <div id="screen-practice" class="screen hidden">
+        <h2 style="color: #2557a7; font-size: 28px; text-transform: uppercase; margin-top: 20px;">Practice Round</h2>
+        <p style="font-size: 18px; color: #555;">Let's try a few small 4x4 tables first to get familiar with the tasks.</p>
+        
+        <h3 id="practice-instruction-label" style="margin: 20px 0; color: #333; font-size: 22px;"></h3>
+        
+        <div class="matrix-area" style="margin-top: 0;">
+            <div id="practice-matrix-container" style="display: grid; grid-template-columns: repeat(4, 42px); gap: 6px; justify-content: center; margin: 20px auto; padding: 10px; background: white;"></div>
+            
+            <div class="input-area" style="margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <label style="font-size: 20px; font-weight: bold; margin: 0;">Count:</label>
+                <input type="number" id="practice-user-answer" placeholder="0" oninput="togglePracticeSubmit()" style="font-size: 18px; padding: 10px; width: 80px; text-align: center; border: 1px solid #ccc; border-radius: 4px; margin: 0;">
+                <button id="submit-practice-btn" class="submit-btn" onclick="checkPracticeAnswer()" disabled style="background-color: #2557a7; color: white; opacity: 0.5; padding: 10px 25px; font-size: 18px; margin: 0; border-radius: 4px; cursor: not-allowed; border: none;">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-treatment" class="screen hidden">
+        <h2>Information</h2>
+        <div style="max-width: 600px; margin: 30px auto; padding: 30px; background-color: #fff; border: 2px solid #28a745; border-radius: 8px; font-size: 20px; line-height: 1.6;">
+            <p id="treatment-message"></p>
+        </div>
+        <button onclick="setupBlockIntro()" style="background-color: #28a745; color: white; padding: 12px 30px; font-size: 18px; border: none; border-radius: 4px; cursor: pointer;">Proceed to Experiment</button>
+    </div>
+    
+    <div id="screen-block-intro" class="screen hidden">
+        <h2 id="block-title" style="font-size: 28px; margin-bottom: 20px;">SESSION 1 of 3</h2>
+        <button class="start-session-btn" onclick="startBlock()" style="padding: 15px 40px; font-size: 20px;">Start Session</button>
+    </div>
+
+<div id="screen-task" class="screen hidden">
+       
+       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 10px; box-sizing: border-box; margin-top: 20px;">
+           
+           <div style="flex: 1;"></div>
+
+           <div id="score-display" style="flex: 1; text-align: center; font-size: 24px; font-weight: bold; color: #333; margin: 0;"> 
+               Earnings: <span id="current-earnings">0</span> VND 
+           </div>
+
+           <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
+               <div style="font-size: 16px; color: #888; margin: 0; white-space: nowrap;">
+                   Session No: <span id="block-progress">1/3</span>
+               </div>
+               
+               <button id="btn-stop-working" onclick="stopEarly()" 
+                       onmousedown="this.style.backgroundColor='#7bc087'; this.style.color='white'; this.style.borderColor='#7bc087';" 
+                       onmouseup="this.style.backgroundColor='transparent'; this.style.color='#888'; this.style.borderColor='#ccc';"
+                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='#888'; this.style.borderColor='#ccc';"
+                       style="margin: 0; background-color: transparent; border: 1px solid #ccc; color: #888; cursor: pointer; padding: 10px 15px; border-radius: 6px; transition: 0.1s; font-weight: bold; font-size: 14px; white-space: nowrap;">
+                   Stop and try next session
+               </button>
+           </div>
+
+       </div>
+       
+       <h3 id="task-instruction-label" style="margin: 20px 0; color: #333;"></h3>
+       
+       <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+           <div class="matrix-area" style="margin-top: 0;">
+               <div id="matrix-container"></div>
+               
+               <div class="input-area" style="margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+                   <label style="font-size: 20px; font-weight: bold; margin: 0;">Count:</label>
+                   <input type="number" id="user-answer" placeholder="0" oninput="toggleSubmitButton()" style="font-size: 18px; padding: 10px; width: 80px; text-align: center; border: 1px solid #ccc; border-radius: 4px; margin: 0;">
+                   
+                   <button id="submit-matrix-btn" class="submit-btn" onclick="checkAnswer()" disabled style="background-color: #3b5998; color: white; border: none; opacity: 0.5; padding: 10px 25px; font-size: 18px; margin: 0; border-radius: 4px; cursor: not-allowed;">Submit</button>
+               </div>
+           </div>
+       </div>
+       
+       <hr style="width: 80%; margin: 30px 0 20px 0; border: none; border-top: 1px solid #ccc;">
+    </div>
+    
+    <div id="screen-post-block" class="screen hidden">
+        <div style="text-align: left; max-width: 600px; margin: 40px auto; padding: 30px; border: 1px solid #ddd; border-radius: 8px; background: #fff;">
+            
+            <label style="display:block; margin-bottom: 5px; font-weight:bold; font-size: 18px;">1. How satisfied are you with your earnings from this session?</label>
+            <div style="margin-bottom: 15px; font-size: 16px; color: #333; font-weight: bold;">(1 = Not at all satisfied, 7 = Very satisfied)</div>
+            <input type="number" id="block-earnings-satisfaction" min="1" max="7" style="width: 100%; padding: 12px; margin-bottom: 30px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+
+            <label style="display:block; margin-bottom: 5px; font-weight:bold; font-size: 18px;">2. How demanding did you find this task?</label>
+            <div style="margin-bottom: 15px; font-size: 16px; color: #333; font-weight: bold;">(1 = Not at all demanding, 7 = Very demanding)</div>
+            <input type="number" id="block-interest" min="1" max="7" style="width: 100%; padding: 12px; margin-bottom: 30px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            
+            <button onclick="submitPostBlockSurvey()" style="background-color: #2557a7; color: white; width: 100%; padding: 15px; font-size: 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Submit Survey</button>
+        </div>
+    </div>
+
+    <div id="screen-break" class="screen hidden">
+        <h2>Break Time</h2>
+        <p style="font-size: 18px; max-width: 600px; margin: 0 auto; line-height: 1.6; color: #555;">
+            Please take a short break. At least 2 minutes!<br><br>
+            <span style="font-weight: bold; color: #2557a7;">You may take more time if you want to rest your eyes, and please get back whenever you're ready.</span>
+        </p>
+        <h3 id="break-timer-display" style="font-size: 48px; color: #d9534f; margin: 30px 0;">02:00</h3>
+        <button id="end-break-btn" onclick="endBreak()" disabled style="opacity: 0.5; padding: 12px 30px; font-size: 18px;">Wait for timer...</button>
+    </div>
+
+    <div id="screen-exit-survey" class="screen hidden">
+        <div style="text-align: left; max-width: 600px; margin: 40px auto; padding: 30px; border: 1px solid #ddd; border-radius: 8px; background: #fff;">
+            
+            <label style="display:block; margin-bottom: 5px; font-weight:bold; font-size: 18px;">1. Competitiveness</label>
+            <div style="margin-bottom: 15px; font-size: 16px; color: #333; font-weight: bold;">On a scale from 1 to 7, how competitive do you consider yourself?<br>(1 = Not competitive at all, 7 = Very competitive)</div>
+            <input type="number" id="survey-competitiveness" min="1" max="7" style="width: 100%; padding: 12px; margin-bottom: 30px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; font-size: 18px;">2. We are checking how clearly the instructions were understood.</label>
+            <div style="margin-bottom: 8px; font-size: 16px; color: #333;">During the experiment, you may have seen information about a previous participant’s performance.</div>
+            <div style="margin-bottom: 8px; font-size: 16px; color: #333; font-weight: bold;">Approximately how much did that participant earn?</div>
+            <div style="margin-bottom: 15px; font-size: 14px; color: #555;">(If you saw this information more than once, please choose one amount and report the one you remember most clearly. If you are not sure, please give your best estimate.)</div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 35px;">
+                <input type="number" id="survey-remembered-earnings" placeholder="______" style="width: 150px; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; text-align: center;">
+                <span style="font-size: 16px; font-weight: bold;">VND</span>
+            </div>
+
+            <hr style="margin-bottom: 25px; border: none; border-top: 1px solid #eee;">
+
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; font-size: 16px;">Age:</label>
+            <input type="number" id="survey-age" placeholder="e.g., 20" style="width: 100%; padding: 12px; margin-bottom: 25px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; font-size: 16px;">Gender:</label>
+            <select id="survey-gender" style="width: 100%; padding: 12px; margin-bottom: 25px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                <option value="">Select...</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; font-size: 16px;">Major / Field of study:</label>
+            <input type="text" id="survey-major" placeholder="e.g., Computer Science" style="width: 100%; padding: 12px; margin-bottom: 25px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; font-size: 16px;">Year of study:</label>
+            <select id="survey-year" style="width: 100%; padding: 12px; margin-bottom: 30px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                <option value="">Select...</option>
+                <option value="Freshman (Year 1)">Freshman (Year 1)</option>
+                <option value="Sophomore (Year 2)">Sophomore (Year 2)</option>
+                <option value="Junior (Year 3)">Junior (Year 3)</option>
+                <option value="Senior (Year 4)">Senior (Year 4)</option>
+                <option value="Graduate">Graduate</option>
+            </select>
+
+            <button onclick="submitExitSurvey()" style="background-color: #2557a7; color: white; width: 100%; padding: 15px; font-size: 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Finish Experiment</button>
+        </div>
+    </div>
+
+    <div id="screen-end" class="screen hidden">
+        <h2>Experiment Complete</h2>
+        <p>Click below to submit your results, reveal your final payment, and read the debriefing information.</p>
+        
+        <h3 id="earnings-display-area" style="display: none; color: #333; margin: 25px 0; font-size: 26px;">Total Earnings: <span id="final-total-earnings">0</span> VND</h3>
+        
+        <button id="save-data-btn" onclick="saveDataToCloud()" style="background-color: #28a745; color: white; padding: 15px 40px; font-size: 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Submit Result & Reveal Earnings</button>
+        
+        <p id="save-status-msg" style="display: none; color: #28a745; font-weight: bold; margin-top: 20px; font-size: 18px;">✅ Data saved successfully! Please read the final statement below before closing this tab.</p>
+
+        <div style="text-align: left; max-width: 800px; margin: 40px auto; padding: 40px; border: 1px solid #ddd; border-radius: 8px; background: #fdfdfd; font-size: 16px; line-height: 1.6; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 22px; border-bottom: 2px solid #eee; padding-bottom: 10px;">Debriefing Statement</h3>
+            
+            <p>Thank you for participating in this study.</p>
+            
+            <p>The purpose of this experiment is to understand how simply seeing information about a peer’s earnings influences your effort in a task. Will you work harder to catch up with them? Similar to how people react when exposed to salary information on social media?</p>
+            
+            <p>During the experiment, you may have seen information about the average number of tasks completed by previous participants, or you may not have seen any such information. This information was intentionally varied across different parts of the experiment so that we could study how different reference points (higher, lower, or no benchmark) affect work behavior.</p>
+            
+            <p>It is important to note that:</p>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">The benchmark information did not affect your payment rate.</li>
+                <li style="margin-bottom: 8px;">There is no expected, correct, or "ideal" level of performance in this study.</li>
+                <li style="margin-bottom: 8px;">The benchmark numbers are used only for research purposes and are not a judgment of your ability or effort.</li>
+                <li style="margin-bottom: 8px;">You were free to stop working at any time, and your decisions about how long to continue working are a key part of what we are studying.</li>
+            </ul>
+            
+            <p>All data collected in this study are anonymous and will be analyzed only in aggregate. Your participation will not affect your academic standing in any way.</p>
+            
+            <p>If you experienced any frustration or fatigue during the task, this is completely normal. If you have any concerns or questions about the study, you may contact the researcher or the faculty advisor using the information provided in the consent form.</p>
+            
+            <p style="margin-top: 25px; font-weight: bold; font-size: 18px;">Thank you again for your time and contribution to this research.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
