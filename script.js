@@ -1,9 +1,9 @@
 // --- CONFIGURATION ---
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTUdz9Ck6QXx0l8Ce2U6qaRI_bgKu97nWOa3yW2TEETgG4JYU1lK_q4FrHoJZRQvkQ3Q/exec"; 
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKDX5LrMGC2tlulMc2707dK_l0DbT4E8gB4WNHOiTgxLZMaXhvDOPGgkL-yaef-7T6/exec"; 
 const BLOCK_DURATION_SEC = 15 * 60; // 15 minutes per session
 const BREAK_DURATION_SEC = 120;     // 2 minute mandatory break
 const MAX_BLOCKS = 3;               
-const PAY_PER_CORRECT = 620;       
+// Đã xóa PAY_PER_CORRECT vì giờ tính tiền linh động theo câu
 
 // --- CODE MAPPING (1-6) ---
 const CODE_LOGIC = {
@@ -28,6 +28,7 @@ let assignedCondition = "";
 let currentSessionConfig = [];
 let currentBlock = 1;
 let correctCount = 0; 
+let globalCorrectCount = 0; // Đếm tổng số câu đúng xuyên suốt 3 session để tính tiền
 let totalEarningsGlobal = 0; 
 let timerInterval, breakTimerInterval;
 let matrixStartTime = 0, blockStartTime = 0;
@@ -76,7 +77,8 @@ function toggleSubmitButton() {
 }
 
 function updateCorrectUI() { 
-    document.getElementById('current-earnings').innerText = (correctCount * PAY_PER_CORRECT).toLocaleString(); 
+    // Hiển thị trực tiếp tổng tiền đang có
+    document.getElementById('current-earnings').innerText = totalEarningsGlobal.toLocaleString(); 
 }
 
 // --- EXPERIMENT FLOW ---
@@ -88,6 +90,7 @@ function startExperiment() {
     participantId = `P_Code${assignedCode}_${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     
     totalEarningsGlobal = 0; 
+    globalCorrectCount = 0; // Reset bộ đếm tổng số câu đúng
     currentBlock = 1;
     detailedLog = []; 
     
@@ -242,6 +245,7 @@ function generateMatrix() {
     input.focus();
     toggleSubmitButton();
 }
+
 function checkAnswer() {
     const val = parseInt(document.getElementById('user-answer').value);
     if (isNaN(val)) return;
@@ -266,9 +270,21 @@ function checkAnswer() {
     });
 
     if (isCorrect) { 
-        correctCount++; 
+        correctCount++; // Đếm cho session này (vẫn giữ để tham khảo)
+        globalCorrectCount++; // Đếm tổng cho toàn bộ experiment
+        
+        // TÍNH TIỀN THEO CÔNG THỨC MỚI
+        let currentPay = 27 * (42 - globalCorrectCount);
+        
+        // Chặn không cho tiền rớt xuống số âm nếu người ta ráng cày qua câu 42
+        if (currentPay < 0) {
+            currentPay = 0;
+        }
+
+        totalEarningsGlobal += currentPay; // Cộng thẳng vào tổng tiền toàn cục
         updateCorrectUI(); 
-        alert("Correct!"); 
+        
+        alert(`Correct! You earned ${currentPay} VND for this answer.`); 
     } else {
         alert(`Incorrect. The actual correct answer was ${currentTargetCount}.`);
     }
@@ -315,7 +331,8 @@ function endBlock(reason) {
         timestamp: new Date().toISOString()
     });
 
-    totalEarningsGlobal += (correctCount * PAY_PER_CORRECT);
+    // ĐÃ XÓA DÒNG CỘNG TIỀN Ở ĐÂY VÌ ĐÃ CỘNG TRỰC TIẾP Ở TRÊN HÀM CHECK ANSWER RỒI
+
     let finalBlockDur = (Date.now() - blockStartTime) / 1000;
 
     detailedLog.forEach(row => {
