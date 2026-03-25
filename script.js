@@ -203,8 +203,8 @@ function generateMatrix() {
     const container = document.getElementById('matrix-container');
     container.innerHTML = ''; currentTargetCount = 0; matrixTabSwitches = 0; matrixSwitchHistory = [];
 
-    // 1. Chốt số lượng đáp án đúng (random từ 28 đến 40)
-    currentTargetCount = Math.floor(Math.random() * (40 - 28 + 1)) + 28;
+    // 1. Chốt số lượng đáp án đúng (random từ 30 đến 45)
+    currentTargetCount = Math.floor(Math.random() * (45 - 30 + 1)) + 30;
 
     // 2. Tạo mảng chứa ĐÚNG số lượng target và chim mồi
     let cellTypes = Array(64).fill(false);
