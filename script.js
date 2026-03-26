@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTUdz9Ck6QXx0l8Ce2U6qaRI_bgKu97nWOa3yW2TEETgG4JYU1lK_q4FrHoJZRQvkQ3Q/exec"; 
-const BLOCK_DURATION_SEC = 20 * 60; // 20 phút mỗi session
+const BLOCK_DURATION_SEC = 15 * 60; // 15 phút mỗi session
 const BREAK_DURATION_SEC = 120;     // 2 phút nghỉ
 const MAX_BLOCKS = 3;               
 
